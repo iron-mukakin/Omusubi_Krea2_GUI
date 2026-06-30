@@ -212,7 +212,7 @@ def build_train_command(s: TrainState, paths: AppPaths) -> list[str]:
         (s.fp8_scaled,                 "--fp8_scaled"),
         (s.block_swap_h2d_only,        "--block_swap_h2d_only"),
         (s.use_pinned_memory,          "--use_pinned_memory_for_block_swap"),
-        (s.cpu_offload_checkpointing,  "--cpu_offload_checkpointing"),
+        (s.cpu_offload_checkpointing,  "--gradient_checkpointing_cpu_offload"),
         (s.compile,                    "--compile"),
         (s.turbo_dit_cache,            "--turbo_dit_cache"),
     ]

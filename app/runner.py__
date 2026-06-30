@@ -19,26 +19,21 @@ tab_monitor.py の MonitorGraph がポーリングして読み取る。
   の結果が出力されないため、通常は取得できない（モニター側は「データなし」を正しい状態
   として扱う）。
 
-  【tqdm 重複行と Text ウィジェット表示の真因（デバッグ調査により確定）】
-  事前の調査で "\\r 区切りが1回の readline() に混入する" という仮説を立てたが、
-  実際に raw_chunk の repr() をログ出力して検証した結果、Python の
-  `for raw_line in proc.stdout:`（text=True, universal newlines）は
-  "\\r" を正しく "\\n" として認識しており、子プロセスが書き出す
-  同一カウンタ (N/M) の2回の tqdm 更新（update() と set_postfix() の分離呼び出し
-  に由来）は、最初から readline() 単位で正しく2つの独立した文字列として
-  届いていることが確認できた。つまり raw_chunk の分割処理は不要であり、
-  問題はそこではなかった。
-
-  真因は GUI 側の _delete_last_line() にあった。
-  tkinter の Text ウィジェットは常に末尾に「暗黙の空行」を1行保持する仕様であり、
-  insert(tk.END, msg + "\\n") の直後に "end-1c linestart" を取ると、
-  それは直前に挿入した実テキスト行ではなく、常に空である「暗黙の最終空行」の
-  先頭を指してしまう。そのため w.delete(line_start, "end") は実質的に
-  何も削除しておらず（空文字列の削除）、重複フィルタで replace_last=True が
-  正しく発火していても、画面上の表示は一切置き換わらず単純に2行とも残り続けていた。
-
-  正しくは "end-2l linestart" を使う（end から2行分遡ることで、暗黙の空行の
-  「1つ前」、すなわち直前に挿入した実テキスト行の先頭を取得できる）。
+  【tqdm \\r 区切り問題の真因と対処（重要）】
+  tqdm は update() のたびに "\\r<進捗行>"（改行なし、行頭復帰のみ）を標準出力に書く。
+  set_postfix() 呼び出しでさらに別の "\\r<進捗行>" が続けて書かれることがあり、
+  これらは "\\n" を一切含まない。
+  Python の `for raw_line in proc.stdout:` は内部的に readline() を呼び、
+  区切り文字として "\\n" のみを認識する。そのため "\\r" だけで区切られた
+  複数回ぶんの tqdm 更新が、1 回の readline() 呼び出しで「\\r を含む 1 つの
+  巨大な文字列」としてまとめて返ってくることがある
+  （例: "steps: ...avr_loss=0.103]\\rsteps: ...avr_loss=0.102]\\n"）。
+  これまでの実装は raw_line 全体を 1 行として扱い "\\r" を除去せず Text に
+  insert していたため、Text 上では "\\r" が改行とみなされず同一行内に
+  2 つの進捗表示が連結されて表示されていた（同一カウンタの重複ではなく、
+  \\r 区切りの未分割が原因）。
+  対処として、raw_line を "\\r" で分割し、それぞれを独立した論理行として
+  個別に処理する（ANSI除去・重複フィルタ・グラフ抽出・キュー投入を行単位で行う）。
 """
 from __future__ import annotations
 
@@ -115,17 +110,19 @@ def launch_training(
             with open(log_path, "a", encoding="utf-8") as lf:
                 lf.write(f"CMD: {' '.join(cmd)}\n\n")
                 step_counter = [0]
-                for raw_line in proc.stdout:
-                    # text=True (universal newlines) により "\r" は readline() の
-                    # 時点で正しく行区切りとして処理されるため、ここでの追加分割は不要
-                    # （デバッグ調査で確認済み）。
-                    line = _ANSI_RE.sub("", raw_line.rstrip())
-                    if not line:
-                        continue
-                    _enqueue_filtered(s, line, last_steps_counter)
-                    lf.write(line + "\n")
-                    lf.flush()
-                    _try_parse_graph(s, line, step_counter)
+                for raw_chunk in proc.stdout:
+                    # raw_chunk は "\n" まで読まれた1 readline() 結果。
+                    # 内部に "\r" 区切りの複数 tqdm 更新が混入している場合があるため
+                    # まず "\r" で分割し、各断片を独立した論理行として処理する。
+                    chunk = raw_chunk.rstrip("\n").rstrip("\r")
+                    for sub_line in chunk.split("\r"):
+                        line = _ANSI_RE.sub("", sub_line.rstrip())
+                        if not line:
+                            continue
+                        _enqueue_filtered(s, line, last_steps_counter)
+                        lf.write(line + "\n")
+                        lf.flush()
+                        _try_parse_graph(s, line, step_counter)
 
             proc.wait()
             rc  = proc.returncode
@@ -179,8 +176,8 @@ def start_log_drain(
     1 セッションにつき 1 回だけ呼び出す（重複登録を防ぐため _log_drain_started フラグで管理）。
 
     キューに積まれるアイテムは (msg, replace_last) のタプル。
-    replace_last が True の場合、ウィジェットの最終行（直前に挿入した実テキスト行）
-    を削除してから msg を挿入する（tqdm "steps:" 行の重複表示抑制用）。
+    replace_last が True の場合、ウィジェットの最終行を削除してから msg を挿入する
+    （tqdm "steps:" 行の重複表示抑制用）。
     """
     if s._log_drain_started:
         return
@@ -212,16 +209,11 @@ def start_log_drain(
 
 
 def _delete_last_line(w: tk.Text) -> None:
-    """Text ウィジェットの「直前に挿入した実テキスト行」を削除する。
-
-    tkinter の Text は常に末尾に暗黙の空行を1行保持する仕様のため、
-    "end-1c" は常にその暗黙の空行を指してしまい、実テキスト行を
-    削除できない（バグの真因だった箇所）。
-    "end-2l"（end から2行分遡る）を使うことで、暗黙の空行の1つ前、
-    すなわち直前に insert した実テキスト行の先頭を正しく取得する。
-    """
-    line_start = w.index("end-2l")
-    w.delete(line_start, "end-1l")
+    """Text ウィジェットの最終行（末尾の空行を除く）を削除する。"""
+    # end-1c は末尾の暗黙の改行の直前を指す。そこからさらに1行分遡って削除する。
+    end_index = w.index("end-1c")
+    line_start = w.index(f"{end_index} linestart")
+    w.delete(line_start, "end")
 
 
 # ── 内部ヘルパー ─────────────────────────────────────────────────────────────
@@ -238,13 +230,11 @@ def _enqueue_filtered(
 ) -> None:
     """tqdm "steps:" 行の重複を抑制してキューに投入する。
 
-    同一カウンタ (N/M) の steps: 行が連続した場合、直前の表示行を
-    上書き（置換）する。カウンタが異なる、または steps: 行でない場合は
-    通常通り追記する。
-
-    update() と set_postfix() の分離呼び出しにより、同一カウンタの行が
-    avr_loss なし→ありの順で2行出力される（デバッグ調査で実際に readline()
-    単位で2つの独立した行として届くことを確認済み）。
+    "\\r" 分割により各 tqdm 更新は既に独立した論理行になっているが、
+    それでも同一カウンタ (N/M) の steps: 行が連続するケース
+    （update() と set_postfix() が分割後も別々の sub_line として
+    連続して届く場合）に備え、直前の表示行を上書き（置換）する。
+    カウンタが異なる、または steps: 行でない場合は通常通り追記する。
     """
     if _TQDM_STEPS_PREFIX_RE.match(line):
         counter_m = _TQDM_COUNTER_RE.search(line)
