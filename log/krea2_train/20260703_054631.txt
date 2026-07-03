@@ -1,0 +1,302 @@
+CMD: E:\Omusubi_krea2_gui\musubi-tuner\.venv\Scripts\python.exe -m accelerate.commands.launch --num_cpu_threads_per_process 1 --mixed_precision bf16 E:\Omusubi_krea2_gui\app\_krea2_launcher.py --dit E:/omusubi_krea2_gui/modeles/raw.safetensors --vae F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors --dataset_config E:\Omusubi_krea2_gui\configs\krea2_lora.toml --network_module networks.lora_krea2 --network_dim 32 --network_alpha 32.0 --output_dir E:\omusubi_krea2_gui\output --output_name krea2_lora --learning_rate 1e-4 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --optimizer_type AdamW --max_train_epochs 16 --save_every_n_epochs 1 --mixed_precision bf16 --save_precision bf16 --gradient_accumulation_steps 1 --max_grad_norm 1.0 --timestep_sampling shift --discrete_flow_shift 2.5 --weighting_scheme none --seed 42 --text_encoder E:/Omusubi_krea2_gui/modeles/qwen3_vl_4b_bf16.safetensors --sdpa --gradient_checkpointing --persistent_data_loader_workers --fp8_base --fp8_scaled --block_swap_h2d_only --use_pinned_memory_for_block_swap --blocks_to_swap 26 --block_swap_ring_size 1 --sample_every_n_epochs 1 --sample_prompts E:\omusubi_krea2_gui\output\sample\_sample_prompt.txt
+
+INFO:musubi_tuner.training.trainer_base:Load dataset config from E:\Omusubi_krea2_gui\configs\krea2_lora.toml
+INFO:musubi_tuner.dataset.datasources:glob images in E:/lora_training/Data/input/ymir/1_ymir
+INFO:musubi_tuner.dataset.datasources:found 34 images
+INFO:musubi_tuner.dataset.config_utils:[Dataset 0]
+  is_image_dataset: True
+  resolution: (1024, 1024)
+  batch_size: 1
+  num_repeats: 1
+  caption_extension: ".txt"
+  enable_bucket: True
+  bucket_no_upscale: True
+  cache_directory: "E:/lora_training/Data/input/ymir/1_ymir"
+  debug_dataset: False
+    image_directory: "E:/lora_training/Data/input/ymir/1_ymir"
+    image_jsonl_file: "None"
+    control_directory: "None"
+    multiple_target: False
+    fp_latent_window_size: 9
+    fp_1f_clean_indices: None
+    fp_1f_target_index: None
+    fp_1f_no_post: False
+    no_resize_control: False
+    control_resolution: None
+INFO:musubi_tuner.dataset.bucket:bucket: (848, 1104), count: 1
+INFO:musubi_tuner.dataset.bucket:bucket: (864, 1200), count: 1
+INFO:musubi_tuner.dataset.bucket:bucket: (880, 1184), count: 30
+INFO:musubi_tuner.dataset.bucket:bucket: (992, 896), count: 1
+INFO:musubi_tuner.dataset.bucket:bucket: (1024, 1024), count: 1
+INFO:musubi_tuner.dataset.bucket:total batches: 34
+INFO:musubi_tuner.training.trainer_base:preparing accelerator
+INFO:musubi_tuner.training.trainer_base:DiT precision: torch.bfloat16, weight precision: None
+INFO:__main__:cache Text Encoder outputs for sample prompt: E:\omusubi_krea2_gui\output\sample\_sample_prompt.txt
+INFO:musubi_tuner.krea2.krea2_encoder:Loading Krea 2 text encoder (Qwen3-VL) weights from E:/Omusubi_krea2_gui/modeles/qwen3_vl_4b_bf16.safetensors
+INFO:__main__:Encoding sample prompts with Qwen3-VL
+INFO:__main__:Loading VAE model from F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors
+INFO:musubi_tuner.qwen_image.qwen_image_utils:Initializing VAE
+INFO:musubi_tuner.qwen_image.qwen_image_utils:Loading VAE from F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors
+INFO:musubi_tuner.qwen_image.qwen_image_utils:Converted ComfyUI AutoencoderKL state dict keys to official format
+INFO:musubi_tuner.qwen_image.qwen_image_utils:Loaded VAE: <All keys matched successfully>
+INFO:musubi_tuner.training.trainer_base:Loading DiT model from E:/omusubi_krea2_gui/modeles/raw.safetensors
+INFO:musubi_tuner.krea2.krea2_utils:Loading Krea 2 DiT weights from E:/omusubi_krea2_gui/modeles/raw.safetensors (fp8 scaled)
+INFO:musubi_tuner.utils.lora_utils:Loading model files: ['E:/omusubi_krea2_gui/modeles/raw.safetensors']
+INFO:musubi_tuner.utils.lora_utils:Loading state dict with FP8 optimization. Dtype of weight: None, hook enabled: False
+Trying to import sageattention
+Failed to import sageattention
+accelerator device: cuda
+Loading raw.safetensors:   0%|          | 0/430 [00:00<?, ?key/s]
+Loading raw.safetensors:  35%|███▍      | 150/430 [00:00<00:00, 1215.43key/s]
+Loading raw.safetensors:  35%|███▍      | 150/430 [00:20<00:00, 1215.43key/s]
+Loading raw.safetensors:  53%|█████▎    | 226/430 [00:20<00:22,  8.95key/s]
+Loading raw.safetensors:  53%|█████▎    | 228/430 [00:21<00:23,  8.63key/s]
+Loading raw.safetensors:  53%|█████▎    | 228/430 [00:40<00:23,  8.63key/s]
+Loading raw.safetensors:  65%|██████▍   | 278/430 [00:40<00:32,  4.64key/s]
+Loading raw.safetensors:  65%|██████▍   | 279/430 [00:41<00:32,  4.63key/s]
+Loading raw.safetensors:  71%|███████▏  | 307/430 [00:51<00:32,  3.82key/s]
+Loading raw.safetensors:  72%|███████▏  | 308/430 [00:52<00:32,  3.72key/s]
+Loading raw.safetensors:  76%|███████▌  | 325/430 [00:59<00:32,  3.20key/s]
+Loading raw.safetensors:  78%|███████▊  | 336/430 [01:04<00:31,  3.02key/s]
+Loading raw.safetensors:  80%|████████  | 344/430 [01:07<00:29,  2.90key/s]
+Loading raw.safetensors:  81%|████████  | 349/430 [01:09<00:28,  2.82key/s]
+Loading raw.safetensors:  82%|████████▏ | 353/430 [01:10<00:27,  2.83key/s]
+Loading raw.safetensors:  83%|████████▎ | 356/430 [01:12<00:26,  2.82key/s]
+Loading raw.safetensors:  83%|████████▎ | 358/430 [01:13<00:28,  2.51key/s]
+Loading raw.safetensors:  84%|████████▎ | 360/430 [01:13<00:25,  2.71key/s]
+Loading raw.safetensors:  84%|████████▍ | 362/430 [01:14<00:23,  2.84key/s]
+Loading raw.safetensors:  85%|████████▍ | 364/430 [01:15<00:24,  2.74key/s]
+Loading raw.safetensors:  85%|████████▍ | 365/430 [01:16<00:26,  2.43key/s]
+Loading raw.safetensors:  85%|████████▌ | 366/430 [01:16<00:29,  2.15key/s]
+Loading raw.safetensors:  85%|████████▌ | 367/430 [01:17<00:27,  2.31key/s]
+Loading raw.safetensors:  86%|████████▌ | 369/430 [01:17<00:21,  2.83key/s]
+Loading raw.safetensors:  86%|████████▌ | 370/430 [01:17<00:20,  2.94key/s]
+Loading raw.safetensors:  87%|████████▋ | 372/430 [01:18<00:21,  2.73key/s]
+Loading raw.safetensors:  87%|████████▋ | 373/430 [01:19<00:25,  2.25key/s]
+Loading raw.safetensors:  87%|████████▋ | 374/430 [01:20<00:29,  1.92key/s]
+Loading raw.safetensors:  87%|████████▋ | 375/430 [01:20<00:25,  2.17key/s]
+Loading raw.safetensors:  88%|████████▊ | 377/430 [01:20<00:18,  2.93key/s]
+Loading raw.safetensors:  88%|████████▊ | 378/430 [01:21<00:17,  3.05key/s]
+Loading raw.safetensors:  88%|████████▊ | 380/430 [01:21<00:18,  2.76key/s]
+Loading raw.safetensors:  89%|████████▊ | 381/430 [01:22<00:22,  2.23key/s]
+Loading raw.safetensors:  89%|████████▉ | 382/430 [01:23<00:25,  1.91key/s]
+Loading raw.safetensors:  89%|████████▉ | 383/430 [01:23<00:21,  2.16key/s]
+Loading raw.safetensors:  90%|████████▉ | 385/430 [01:24<00:15,  2.89key/s]
+Loading raw.safetensors:  90%|████████▉ | 386/430 [01:24<00:14,  3.04key/s]
+Loading raw.safetensors:  90%|█████████ | 388/430 [01:25<00:15,  2.76key/s]
+Loading raw.safetensors:  90%|█████████ | 389/430 [01:25<00:18,  2.21key/s]
+Loading raw.safetensors:  91%|█████████ | 390/430 [01:26<00:20,  1.91key/s]
+Loading raw.safetensors:  91%|█████████ | 391/430 [01:26<00:18,  2.16key/s]
+Loading raw.safetensors:  91%|█████████▏| 393/430 [01:27<00:12,  2.91key/s]
+Loading raw.safetensors:  92%|█████████▏| 394/430 [01:27<00:11,  3.07key/s]
+Loading raw.safetensors:  92%|█████████▏| 396/430 [01:28<00:12,  2.79key/s]
+Loading raw.safetensors:  92%|█████████▏| 397/430 [01:29<00:14,  2.23key/s]
+Loading raw.safetensors:  93%|█████████▎| 398/430 [01:29<00:16,  1.91key/s]
+Loading raw.safetensors:  94%|█████████▍| 405/430 [01:30<00:04,  6.05key/s]
+Loading raw.safetensors:  96%|█████████▌| 412/430 [01:30<00:01, 11.04key/s]
+Loading raw.safetensors:  97%|█████████▋| 419/430 [01:30<00:00, 17.00key/s]
+Loading raw.safetensors:  99%|█████████▊| 424/430 [01:30<00:00, 20.99key/s]
+Loading raw.safetensors: 100%|██████████| 430/430 [01:30<00:00, 25.99key/s]
+Loading raw.safetensors: 100%|██████████| 430/430 [01:30<00:00,  4.75key/s]
+INFO:musubi_tuner.modules.fp8_optimization_utils:Number of optimized Linear layers: 224
+INFO:musubi_tuner.modules.fp8_optimization_utils:Number of monkey-patched Linear layers: 224
+INFO:musubi_tuner.training.trainer_base:enable swap 26 blocks to CPU from device: cuda, use pinned memory: True, H2D-only: True
+INFO:musubi_tuner.networks.lora:create LoRA network. base dim (rank): 32, alpha: 32.0
+INFO:musubi_tuner.networks.lora:neuron dropout: p=None, rank dropout: p=None, module dropout: p=None
+INFO:musubi_tuner.networks.lora:create LoRA for U-Net/DiT: 264 modules.
+INFO:musubi_tuner.networks.lora:enable LoRA for U-Net: 264 modules
+INFO:musubi_tuner.training.trainer_base:use AdamW optimizer | {}
+INFO:musubi_tuner.training.trainer_base:set DiT model name for metadata: E:/omusubi_krea2_gui/modeles/raw.safetensors
+INFO:musubi_tuner.training.trainer_base:set VAE model name for metadata: F:/Game_Files/ComfyUI_windows_portable/ComfyUI/models/vae/qwen_image_vae.safetensors
+LoRAStreamOffloader[single]: H2D-only block swap. 26 streaming / 28 blocks, ring=1, pinned=True. streaming indices: [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23, 24, 25, 26, 27]
+Krea 2: Block swap enabled. Swapping 26 of 28 blocks to device cuda. Supports backward: True
+import network module: networks.lora_krea2
+prepare optimizer, data loader etc.
+override steps. steps for 16 epochs is / 指定エポックまでのステップ数: 544
+running training / 学習開始
+  num train items / 学習画像、動画数: 34
+  num batches per epoch / 1epochのバッチ数: 34
+  num epochs / epoch数: 16
+  batch size per device / バッチサイズ: 1
+  gradient accumulation steps / 勾配を合計するステップ数 = 1
+  total optimization steps / 学習ステップ数: 544
+steps:   0%|          | 0/544 [00:00<?, ?it/s]INFO:musubi_tuner.training.trainer_base:network weights will be saved as torch.bfloat16 (--save_precision bf16)
+INFO:musubi_tuner.training.trainer_base:DiT dtype: torch.float32, device: cuda:0
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 0, epoch: 1
+steps:   0%|          | 0/544 [00:00<?, ?it/s]
+steps:   0%|          | 1/544 [00:00<00:03, 150.77it/s, avr_loss=0.0534]
+steps:   0%|          | 2/544 [00:16<1:16:03,  8.42s/it, avr_loss=0.0534]
+steps:   0%|          | 2/544 [00:17<1:17:33,  8.59s/it, avr_loss=0.0784]
+steps:   1%|          | 3/544 [00:34<1:43:07, 11.44s/it, avr_loss=0.0784]
+steps:   1%|          | 3/544 [00:34<1:43:11, 11.44s/it, avr_loss=0.0762]
+steps:   1%|          | 4/544 [00:51<1:55:21, 12.82s/it, avr_loss=0.0762]
+steps:   1%|          | 4/544 [00:51<1:56:06, 12.90s/it, avr_loss=0.0773]
+steps:   1%|          | 5/544 [01:08<2:03:15, 13.72s/it, avr_loss=0.0773]
+steps:   1%|          | 5/544 [01:08<2:03:51, 13.79s/it, avr_loss=0.0792]
+steps:   1%|          | 6/544 [01:25<2:08:13, 14.30s/it, avr_loss=0.0792]
+steps:   1%|          | 6/544 [01:26<2:08:42, 14.35s/it, avr_loss=0.0795]
+steps:   1%|▏         | 7/544 [01:43<2:11:51, 14.73s/it, avr_loss=0.0795]
+steps:   1%|▏         | 7/544 [01:43<2:12:16, 14.78s/it, avr_loss=0.0771]
+steps:   1%|▏         | 8/544 [02:00<2:14:37, 15.07s/it, avr_loss=0.0771]
+steps:   1%|▏         | 8/544 [02:00<2:14:59, 15.11s/it, avr_loss=0.0766]
+steps:   2%|▏         | 9/544 [02:17<2:16:28, 15.31s/it, avr_loss=0.0766]
+steps:   2%|▏         | 9/544 [02:18<2:16:48, 15.34s/it, avr_loss=0.0779]
+steps:   2%|▏         | 10/544 [02:34<2:17:52, 15.49s/it, avr_loss=0.0779]
+steps:   2%|▏         | 10/544 [02:35<2:18:10, 15.52s/it, avr_loss=0.0766]
+steps:   2%|▏         | 11/544 [02:52<2:18:59, 15.65s/it, avr_loss=0.0766]
+steps:   2%|▏         | 11/544 [02:52<2:19:15, 15.68s/it, avr_loss=0.0779]
+steps:   2%|▏         | 12/544 [03:09<2:19:53, 15.78s/it, avr_loss=0.0779]
+steps:   2%|▏         | 12/544 [03:09<2:20:08, 15.80s/it, avr_loss=0.0773]
+steps:   2%|▏         | 13/544 [03:26<2:20:41, 15.90s/it, avr_loss=0.0773]
+steps:   2%|▏         | 13/544 [03:27<2:20:55, 15.92s/it, avr_loss=0.0773]
+steps:   3%|▎         | 14/544 [03:43<2:21:17, 16.00s/it, avr_loss=0.0773]
+steps:   3%|▎         | 14/544 [03:44<2:21:29, 16.02s/it, avr_loss=0.079]
+steps:   3%|▎         | 15/544 [04:00<2:21:32, 16.05s/it, avr_loss=0.079]
+steps:   3%|▎         | 15/544 [04:01<2:21:44, 16.08s/it, avr_loss=0.0789]
+steps:   3%|▎         | 16/544 [04:17<2:21:42, 16.10s/it, avr_loss=0.0789]
+steps:   3%|▎         | 16/544 [04:17<2:21:52, 16.12s/it, avr_loss=0.0801]
+steps:   3%|▎         | 17/544 [04:34<2:21:48, 16.14s/it, avr_loss=0.0801]
+steps:   3%|▎         | 17/544 [04:34<2:21:58, 16.16s/it, avr_loss=0.0793]
+steps:   3%|▎         | 18/544 [04:51<2:21:51, 16.18s/it, avr_loss=0.0793]
+steps:   3%|▎         | 18/544 [04:51<2:22:01, 16.20s/it, avr_loss=0.0813]
+steps:   3%|▎         | 19/544 [05:08<2:21:53, 16.22s/it, avr_loss=0.0813]
+steps:   3%|▎         | 19/544 [05:08<2:22:02, 16.23s/it, avr_loss=0.0822]
+steps:   4%|▎         | 20/544 [05:24<2:21:53, 16.25s/it, avr_loss=0.0822]
+steps:   4%|▎         | 20/544 [05:25<2:22:02, 16.26s/it, avr_loss=0.0812]
+steps:   4%|▍         | 21/544 [05:41<2:21:52, 16.28s/it, avr_loss=0.0812]
+steps:   4%|▍         | 21/544 [05:42<2:22:00, 16.29s/it, avr_loss=0.0811]
+steps:   4%|▍         | 22/544 [05:58<2:21:52, 16.31s/it, avr_loss=0.0811]
+steps:   4%|▍         | 22/544 [05:59<2:21:59, 16.32s/it, avr_loss=0.0807]
+steps:   4%|▍         | 23/544 [06:15<2:21:49, 16.33s/it, avr_loss=0.0807]
+steps:   4%|▍         | 23/544 [06:15<2:21:57, 16.35s/it, avr_loss=0.0797]
+steps:   4%|▍         | 24/544 [06:30<2:21:06, 16.28s/it, avr_loss=0.0797]
+steps:   4%|▍         | 24/544 [06:31<2:21:12, 16.29s/it, avr_loss=0.0791]
+steps:   5%|▍         | 25/544 [06:47<2:21:02, 16.31s/it, avr_loss=0.0791]
+steps:   5%|▍         | 25/544 [06:47<2:21:09, 16.32s/it, avr_loss=0.0806]
+steps:   5%|▍         | 26/544 [07:04<2:20:58, 16.33s/it, avr_loss=0.0806]
+steps:   5%|▍         | 26/544 [07:04<2:21:04, 16.34s/it, avr_loss=0.0805]
+steps:   5%|▍         | 27/544 [07:21<2:20:52, 16.35s/it, avr_loss=0.0805]
+steps:   5%|▍         | 27/544 [07:21<2:20:58, 16.36s/it, avr_loss=0.0809]
+steps:   5%|▌         | 28/544 [07:38<2:20:48, 16.37s/it, avr_loss=0.0809]
+steps:   5%|▌         | 28/544 [07:38<2:20:54, 16.38s/it, avr_loss=0.0814]
+steps:   5%|▌         | 29/544 [07:55<2:20:44, 16.40s/it, avr_loss=0.0814]
+steps:   5%|▌         | 29/544 [07:55<2:20:49, 16.41s/it, avr_loss=0.0811]
+steps:   6%|▌         | 30/544 [08:12<2:20:38, 16.42s/it, avr_loss=0.0811]
+steps:   6%|▌         | 30/544 [08:12<2:20:44, 16.43s/it, avr_loss=0.0807]
+steps:   6%|▌         | 31/544 [08:29<2:20:30, 16.43s/it, avr_loss=0.0807]
+steps:   6%|▌         | 31/544 [08:29<2:20:35, 16.44s/it, avr_loss=0.0819]
+steps:   6%|▌         | 32/544 [08:46<2:20:21, 16.45s/it, avr_loss=0.0819]
+steps:   6%|▌         | 32/544 [08:46<2:20:26, 16.46s/it, avr_loss=0.0815]
+steps:   6%|▌         | 33/544 [09:03<2:20:10, 16.46s/it, avr_loss=0.0815]
+steps:   6%|▌         | 33/544 [09:03<2:20:15, 16.47s/it, avr_loss=0.0815]
+steps:   6%|▋         | 34/544 [09:20<2:20:00, 16.47s/it, avr_loss=0.0815]
+steps:   6%|▋         | 34/544 [09:20<2:20:05, 16.48s/it, avr_loss=0.0816]INFO:musubi_tuner.training.trainer_base:
+INFO:musubi_tuner.training.trainer_base:generating sample images at step / サンプル画像生成 ステップ: 34
+INFO:musubi_tuner.training.trainer_base:prompt: fullbody, solo, 1boy ,
+INFO:musubi_tuner.training.trainer_base:height: 1024
+INFO:musubi_tuner.training.trainer_base:width: 1024
+INFO:musubi_tuner.training.trainer_base:frame count: 1
+INFO:musubi_tuner.training.trainer_base:sample steps: 28
+INFO:musubi_tuner.training.trainer_base:guidance scale: 1.0
+INFO:musubi_tuner.training.trainer_base:discrete flow shift: 14.5
+INFO:musubi_tuner.training.trainer_base:seed: 42
+epoch 1/16
+saving checkpoint: E:\omusubi_krea2_gui\output\krea2_lora-000001.safetensors
+Denoising steps:   0%|          | 0/28 [00:00<?, ?it/s]
+Denoising steps:   4%|▎         | 1/28 [00:05<02:26,  5.44s/it]
+Denoising steps:   7%|▋         | 2/28 [00:11<02:23,  5.51s/it]
+Denoising steps:  11%|█         | 3/28 [00:16<02:18,  5.55s/it]
+Denoising steps:  14%|█▍        | 4/28 [00:22<02:13,  5.56s/it]
+Denoising steps:  18%|█▊        | 5/28 [00:27<02:08,  5.57s/it]
+Denoising steps:  21%|██▏       | 6/28 [00:33<02:02,  5.57s/it]
+Denoising steps:  25%|██▌       | 7/28 [00:38<01:56,  5.57s/it]
+Denoising steps:  29%|██▊       | 8/28 [00:44<01:51,  5.57s/it]
+Denoising steps:  32%|███▏      | 9/28 [00:50<01:45,  5.57s/it]
+Denoising steps:  36%|███▌      | 10/28 [00:55<01:40,  5.57s/it]
+Denoising steps:  39%|███▉      | 11/28 [01:01<01:34,  5.57s/it]
+Denoising steps:  43%|████▎     | 12/28 [01:06<01:29,  5.57s/it]
+Denoising steps:  46%|████▋     | 13/28 [01:12<01:23,  5.57s/it]
+Denoising steps:  50%|█████     | 14/28 [01:17<01:17,  5.57s/it]
+Denoising steps:  54%|█████▎    | 15/28 [01:23<01:12,  5.57s/it]
+Denoising steps:  57%|█████▋    | 16/28 [01:29<01:06,  5.57s/it]
+Denoising steps:  61%|██████    | 17/28 [01:34<01:01,  5.57s/it]
+Denoising steps:  64%|██████▍   | 18/28 [01:40<00:55,  5.57s/it]
+Denoising steps:  68%|██████▊   | 19/28 [01:45<00:50,  5.57s/it]
+Denoising steps:  71%|███████▏  | 20/28 [01:51<00:44,  5.57s/it]
+Denoising steps:  75%|███████▌  | 21/28 [01:56<00:38,  5.57s/it]
+Denoising steps:  79%|███████▊  | 22/28 [02:02<00:33,  5.57s/it]
+Denoising steps:  82%|████████▏ | 23/28 [02:08<00:27,  5.57s/it]
+Denoising steps:  86%|████████▌ | 24/28 [02:13<00:22,  5.57s/it]
+Denoising steps:  89%|████████▉ | 25/28 [02:19<00:16,  5.57s/it]
+Denoising steps:  93%|█████████▎| 26/28 [02:24<00:11,  5.57s/it]
+Denoising steps:  96%|█████████▋| 27/28 [02:30<00:05,  5.57s/it]
+Denoising steps: 100%|██████████| 28/28 [02:35<00:00,  5.57s/it]
+Denoising steps: 100%|██████████| 28/28 [02:35<00:00,  5.57s/it]
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+INFO:musubi_tuner.dataset.cache_io:epoch is incremented. current_epoch: 1, epoch: 2
+steps:   6%|▋         | 35/544 [12:17<2:58:42, 21.07s/it, avr_loss=0.0816]
+steps:   6%|▋         | 35/544 [12:17<2:58:46, 21.07s/it, avr_loss=0.0822]
+steps:   7%|▋         | 36/544 [12:34<2:57:22, 20.95s/it, avr_loss=0.0822]
+steps:   7%|▋         | 36/544 [12:34<2:57:27, 20.96s/it, avr_loss=0.0814]forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown
+forrtl: error (200): program aborting due to control-BREAK event
+Image              PC                Routine            Line        Source
+KERNELBASE.dll     00007FFB5ED73F6D  Unknown               Unknown  Unknown
+KERNEL32.DLL       00007FFB5FFDE957  Unknown               Unknown  Unknown
+ntdll.dll          00007FFB619EAD6C  Unknown               Unknown  Unknown

@@ -1,9 +1,11 @@
 """app/tab_sample.py — [サンプル生成] タブ UI ビルダー。"""
 from __future__ import annotations
 
+import re
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
+from typing import Callable
 
 from .state import TrainState, SAMPLE_FIXED_SEED
 from .widgets import labeled_frame
@@ -64,15 +66,33 @@ def build_sample_tab(parent: ttk.Frame, s: TrainState) -> None:
     nb.add(tab_a, text="サンプル A")
     nb.add(tab_b, text="サンプル B")
 
-    sample_dir_a = s.paths.log / "sample_gen" / "a"
-    sample_dir_b = s.paths.log / "sample_gen" / "b"
+    # musubi-tuner (trainer_base.py) はサンプル画像の保存先を
+    # "<output_dir>/sample" に固定している。GUI 側も同ディレクトリを直接
+    # 参照し、複製処理は行わない。output_dir は実行中に変更されうる
+    # tk.StringVar のため、固定 Path として一度だけ捕捉せず、
+    # _resolve_sample_dir() で参照の都度動的に解決する。
 
-    _build_prompt_panel(tab_a, s,
+    render_a = _build_prompt_panel(tab_a, s,
                         s.sample_enabled, s.sample_prompt,
-                        s.sample_negative_prompt, sample_dir_a, "A")
-    _build_prompt_panel(tab_b, s,
+                        s.sample_negative_prompt,
+                        SAMPLE_FIXED_SEED, "A")
+    render_b = _build_prompt_panel(tab_b, s,
                         s.sample_b_enabled, s.sample_b_prompt,
-                        s.sample_b_negative_prompt, sample_dir_b, "B")
+                        s.sample_b_negative_prompt,
+                        SAMPLE_FIXED_SEED + 1, "B")
+
+    def _poll_sample_outputs() -> None:
+        """両パネルのギャラリーを再描画する。
+
+        3秒間隔で自己再スケジュールする（tab_sample.py の生存期間中、常時実行）。
+        画像は output_dir/sample に直接生成されるため複製処理は不要で、
+        ここでは再描画のみを行う。
+        """
+        render_a()
+        render_b()
+        parent.after(3000, _poll_sample_outputs)
+
+    parent.after(100, _poll_sample_outputs)
 
 
 def _build_prompt_panel(
@@ -81,10 +101,26 @@ def _build_prompt_panel(
     enabled_var: tk.BooleanVar,
     prompt_var: tk.StringVar,
     neg_var: tk.StringVar,
-    sample_dir: Path,
+    seed: int,
     label: str,
-) -> None:
-    """1 つのサンプルプロンプトパネルを parent に構築する。"""
+) -> Callable[[], None]:
+    """1 つのサンプルプロンプトパネルを parent に構築し、ギャラリー再描画関数を返す。
+
+    表示対象ディレクトリ (output_dir/sample) は、s.output_dir (tk.StringVar) から
+    再描画のたびに _resolve_sample_dir() で動的に解決する。構築時に固定 Path として
+    キャプチャすると、実行中に output_dir が変更された場合に古い参照を
+    見続ける不具合となるため、意図的にこの設計としている。
+
+    ディレクトリ内の PNG のうち、ファイル名末尾の seed サフィックスが
+    引数 seed と一致するものだけを表示対象とする。musubi-tuner は
+    サンプル A/B を同一フォルダへ出力し、プロンプトファイル内の
+    出現順 (enum) は A/B いずれか一方のみ有効時に破綻するため、
+    固定シードによる判別が唯一の信頼できる手段となる。
+
+    戻り値の Callable はスケジューリングを持たない再描画専用関数であり、
+    呼び出し元 (build_sample_tab の _poll_sample_outputs) が
+    再描画のタイミングを一元管理する。
+    """
     parent.columnconfigure(0, weight=1)
     parent.rowconfigure(1, weight=1)
 
@@ -98,8 +134,8 @@ def _build_prompt_panel(
 
     ttk.Label(top, text="保存先:", foreground="#475569").grid(
         row=1, column=0, sticky=tk.W, padx=(2, 0), pady=2)
-    ttk.Label(top, text=str(sample_dir), foreground="#1D4ED8").grid(
-        row=1, column=1, columnspan=2, sticky=tk.W, pady=2)
+    dest_label = ttk.Label(top, foreground="#1D4ED8")
+    dest_label.grid(row=1, column=1, columnspan=2, sticky=tk.W, pady=2)
 
     ttk.Label(top, text="prompt", width=14, anchor=tk.W).grid(
         row=2, column=0, sticky=tk.W, padx=(2, 2), pady=2)
@@ -133,8 +169,11 @@ def _build_prompt_panel(
         ep_lbl.grid(row=1, column=0, sticky=tk.EW, pady=(2, 0))
         cells.append((img_lbl, ep_lbl))
 
-    def _refresh_gallery(schedule_next: bool = False) -> None:
-        files = _collect_images(sample_dir)
+    def _render_gallery() -> None:
+        """output_dir/sample 内の該当 seed 画像を最大10枚ギャラリーへ反映する（スケジューリングなし）。"""
+        sample_dir = _resolve_sample_dir(s)
+        dest_label.configure(text=f"{sample_dir} (seed={seed} で判別)")
+        files = _collect_images(sample_dir, seed)
         try:
             from PIL import Image as _Im, ImageTk as _ITk
             pil_ok = True
@@ -154,7 +193,6 @@ def _build_prompt_panel(
                 photo_refs[idx] = None
                 continue
             try:
-                from PIL import Image as _Im, ImageTk as _ITk
                 with _Im.open(p) as im:
                     im.thumbnail((200, 200))
                     ph = _ITk.PhotoImage(im.copy())
@@ -164,30 +202,70 @@ def _build_prompt_panel(
                 il.configure(image="", text=p.name)
                 photo_refs[idx] = None
 
-        if schedule_next:
-            parent.after(3000, lambda: _refresh_gallery(True))
-
     btn_row = ttk.Frame(top)
     btn_row.grid(row=4, column=0, columnspan=3, sticky=tk.W, pady=(4, 2))
     ttk.Button(btn_row, text="ギャラリー更新",
-               command=lambda: _refresh_gallery(False)).pack(side=tk.LEFT, padx=(0, 6))
+               command=_render_gallery).pack(side=tk.LEFT, padx=(0, 6))
 
-    _refresh_gallery(True)
+    _render_gallery()
+    return _render_gallery
 
 
-def _collect_images(sample_dir: Path) -> list[Path]:
-    """sample_dir から PNG ファイルを更新時刻降順で最大 10 件返す。"""
-    if not sample_dir.exists():
+# musubi-tuner (trainer_base.py) のサンプル画像命名規則（実出力で確認済み）:
+#   {output_name}_e{epoch:06d}_{prompt_idx:02d}_{timestamp:%Y%m%d%H%M%S}[_{seed}][_{grid_idx}].png
+# 例: krea2_lora_e000001_00_20260702104531_42_000.png
+# prompt_idx はプロンプトファイル内の出現順 (0始まり) であり A/B のラベルとは無関係。
+# grid_idx は末尾に付与される画像内インデックス（save_images_grid() 由来と推測、
+# 単一画像出力時でも "_000" が付与されることを実出力で確認済み。未確証のソース由来）。
+# seed 部分は GUI が固定値 (SAMPLE_FIXED_SEED / +1) を必ず付与するため、
+# A/B の判別にはこちらを用いる。
+_SAMPLE_FILENAME_RE = re.compile(
+    r"_e(?P<epoch>\d+)_(?P<idx>\d+)_(?P<timestamp>\d{14})(?:_(?P<seed>\d+))?(?:_\d+)?$"
+)
+
+
+def _collect_images(image_dir: Path, seed: int | None = None) -> list[Path]:
+    """image_dir から PNG ファイルを更新時刻降順で最大 10 件返す。
+
+    seed を指定した場合、ファイル名末尾の seed サフィックスが一致する
+    ものだけに絞り込む（A/B 判別フィルタ）。
+    """
+    if not image_dir.exists():
         return []
-    return sorted(
-        sample_dir.glob("*.png"),
+    files = sorted(
+        image_dir.glob("*.png"),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
-    )[:10]
+    )
+    if seed is not None:
+        files = [p for p in files if _extract_seed_from_filename(p) == seed]
+    return files[:10]
+
+
+def _extract_seed_from_filename(path: Path) -> int | None:
+    """ファイル名から固定シード（サンプル A/B 判別キー）を抽出する。
+
+    命名規則に一致しない、または seed サフィックスが存在しない場合は None を返す
+    （呼び出し側でどの A/B にも属さないものとして除外される）。
+    """
+    m = _SAMPLE_FILENAME_RE.search(path.stem)
+    if m is None or m.group("seed") is None:
+        return None
+    return int(m.group("seed"))
 
 
 def _parse_epoch(path: Path) -> str:
-    """ファイル名からエポック番号を抽出する。"""
-    import re
-    m = re.search(r"(?:^|_)e?(\d+)(?:_|$)", path.stem)
-    return str(int(m.group(1))) if m else "-"
+    """ファイル名からエポック番号を抽出する（musubi-tuner 命名規則準拠）。"""
+    m = _SAMPLE_FILENAME_RE.search(path.stem)
+    return str(int(m.group("epoch"))) if m else "-"
+
+
+def _resolve_sample_dir(s: TrainState) -> Path:
+    """s.output_dir (tk.StringVar) から output_dir/sample を都度解決して返す。
+
+    musubi-tuner (trainer_base.py) がサンプル画像の保存先として
+    固定的に使用するディレクトリと同一パスを指す。output_dir は
+    実行中に変更されうるため、呼び出しのたびに再評価する
+    （構築時に一度だけ Path として固定してはならない）。
+    """
+    return Path(s.output_dir.get()) / "sample"

@@ -295,7 +295,7 @@ def _write_sample_prompt_file(s: TrainState) -> Path:
             SAMPLE_FIXED_SEED + 1,
         ))
 
-    out_dir     = s.paths.log / "sample_gen"
+    out_dir     = Path(s.output_dir.get()) / "sample"
     out_dir.mkdir(parents=True, exist_ok=True)
     prompt_file = out_dir / "_sample_prompt.txt"
     prompt_file.write_text(
